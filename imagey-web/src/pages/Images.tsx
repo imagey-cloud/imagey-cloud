@@ -6,7 +6,11 @@ interface ImagesProperties {
 }
 
 export default function Images({ privateKey }: ImagesProperties) {
-  const actionIcons = [(<a key="add" className="icon" onClick={() => alert("hallo")}><AddIcon key={"add-icon"}/></a>)];
+  const actionIcons = [
+    <a key="add" className="icon" onClick={() => alert("hallo")}>
+      <AddIcon key={"add-icon"} />
+    </a>,
+  ];
   useActionIcons(actionIcons);
   return (
     <main>
