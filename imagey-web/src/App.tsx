@@ -8,7 +8,8 @@ import { BrowserRouter, Route, Routes } from "react-router";
 import Images from "./pages/Images";
 import Image from "./pages/Image";
 import Chats from "./pages/Chats";
-import MenuButton from "./components/MenuButton";
+import { ActionBarContextProvider } from "./contexts/ActionBarContext";
+import AppBar from "./components/AppBar";
 
 function App() {
   /*
@@ -51,12 +52,9 @@ function App() {
     return <EmailDialog onEmailSelected={(email) => setUser(email)} />;
   }
   return (
+  <ActionBarContextProvider>
     <BrowserRouter>
-      <header>
-        <MenuButton />
-        <h1>Imagey</h1>
-        <div className="action-bar" />
-      </header>
+      <AppBar/>
       <div id="page">
         <Navigation style="rail" />
         <Routes>
@@ -70,6 +68,7 @@ function App() {
         <aside></aside>
       </div>
     </BrowserRouter>
+    </ActionBarContextProvider>
   );
 }
 
