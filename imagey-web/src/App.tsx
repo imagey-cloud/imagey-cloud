@@ -10,6 +10,7 @@ import Image from "./pages/Image";
 import Chats from "./pages/Chats";
 import { ActionBarContextProvider } from "./contexts/ActionBarContext";
 import AppBar from "./components/AppBar";
+import PasswordDialog from "./authentication/PasswordDialog";
 
 function App() {
   /*
@@ -39,17 +40,41 @@ function App() {
   const [user, setUser] = useState(
     params.get("email") ?? deviceRepository.loadUser(),
   );
-  const [privateKey, setPrivateKey] = useState<JsonWebKey>();
+  const [deviceId, setDeviceId] = useState<string>();
   useEffect(() => {
     if (user) {
-      deviceService
-        .setupDevice(user)
-        .then((privateKey) => setPrivateKey(privateKey))
-        .catch(() => setUser(undefined));
+      setDeviceId(deviceRepository.loadDeviceId(user));
     }
   }, [user]);
+  const [privateKey, setPrivateKey] = useState<JsonWebKey>();
   if (!user) {
     return <EmailDialog onEmailSelected={(email) => setUser(email)} />;
+  }
+  if (user && !privateKey) {
+    if (!deviceId) {
+      return (
+        <PasswordDialog
+          message={"Choose device Password"}
+          onPasswordSelected={(password) =>
+            deviceService.registerDevice(user, password).then((privateKey) => {
+              setDeviceId(deviceRepository.loadDeviceId(user));
+              setPrivateKey(privateKey);
+            })
+          }
+        />
+      );
+    } else {
+      return (
+        <PasswordDialog
+          message={"Input device Password"}
+          onPasswordSelected={(password) =>
+            deviceService
+              .setupDevice(user, password)
+              .then((privateKey) => setPrivateKey(privateKey))
+          }
+        />
+      );
+    }
   }
   return (
     <ActionBarContextProvider>
