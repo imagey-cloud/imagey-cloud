@@ -51,9 +51,8 @@ public class UserFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-        if (isEmpty(requestContext.getUriInfo().getPathSegments())
-            && requestContext.getMethod().equalsIgnoreCase("POST")) {
-            return; // POST /users/ is allowed for anyone
+        if (isRegistration(requestContext) || isAuthentication(requestContext)) {
+            return;
         }
         Cookie cookie = requestContext.getCookies().get("token");
         if (cookie == null) {
@@ -69,6 +68,20 @@ public class UserFilter implements ContainerRequestFilter {
             requestContext.abortWith(Response.status(FORBIDDEN).build());
             return;
         }
+    }
+
+    private boolean isRegistration(ContainerRequestContext requestContext) {
+        // registration request is a POST to /users/
+        return isEmpty(requestContext.getUriInfo().getPathSegments())
+            && requestContext.getMethod().equalsIgnoreCase("POST");
+    }
+
+    private boolean isAuthentication(ContainerRequestContext requestContext) {
+        // authentication request is a POST to /users/{email}/authentications
+        List<PathSegment> pathSegments = requestContext.getUriInfo().getPathSegments();
+        return pathSegments.size() == 2
+            && "authentications".equals(pathSegments.get(1).getPath())
+            && requestContext.getMethod().equalsIgnoreCase("POST");
     }
 
     private User extractUser(UriInfo uriInfo) {

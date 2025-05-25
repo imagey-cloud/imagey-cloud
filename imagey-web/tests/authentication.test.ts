@@ -34,18 +34,26 @@ test("new user visits page", async ({ page }) => {
   // Given
   provider
     .given("default")
-    .uponReceiving("a request of joe to register account")
+    .uponReceiving("a request of joe to verify his email")
     .withRequest({
       method: "POST",
-      path: "/users/",
+      path: "/users/joe@imagey.cloud/verifications/",
       headers: { "Content-Type": "application/json" },
-      body: {
-        email: "joe@imagey.cloud",
-      },
     })
     .willRespondWith({
-      status: 202,
+      status: 201,
     });
+	provider
+	  .given("default")
+	  .uponReceiving("a request of joe to get public key")
+	  .withRequest({
+	    method: "GET",
+	    path: "/users/joe@imagey.cloud/public-keys/0",
+	    headers: { "Content-Type": "application/json" },
+	  })
+	  .willRespondWith({
+	    status: 401,
+	  });
 
   await provider.executeTest(async (mockServer) => {
     // When
@@ -66,17 +74,24 @@ test("existing user visits page with new device", async ({ page }) => {
   // Given
   provider
     .given("default")
-    .uponReceiving("a request of mary to register account")
+    .uponReceiving("a request of mary to get public key")
     .withRequest({
-      method: "POST",
-      path: "/users/",
+      method: "GET",
+      path: "/users/mary@imagey.cloud/public-keys/0",
       headers: { "Content-Type": "application/json" },
-      body: {
-        email: "mary@imagey.cloud",
-      },
     })
     .willRespondWith({
-      status: 409,
+      status: 401,
+    });
+  provider
+    .given("default")
+    .uponReceiving("a request of mary to login")
+    .withRequest({
+      method: "POST",
+      path: "/users/mary@imagey.cloud/verifications/",
+    })
+    .willRespondWith({
+      status: 202,
     });
 
   await provider.executeTest(async (mockServer) => {
@@ -151,23 +166,38 @@ test("new user clicks registration link", async ({ page }) => {
   // Given
   provider
     .given("default")
-    .uponReceiving("a request of joe to store public key for device")
+    .uponReceiving("a request of joe to register")
     .withRequest({
-      method: "PUT",
-      path: MatchersV3.regex(
-        "/users/joe@imagey\\.cloud/public-keys/.+",
-        "/users/joe@imagey.cloud/public-keys/123e4567-e89b-12d3-a456-426655440000",
-      ),
+      method: "POST",
+      path: "/users/joe@imagey.cloud/verifications/",
+    })
+    .willRespondWith({
+      status: 201,
+    });
+	provider
+	  .given("default")
+	  .uponReceiving("a request of joe to get symmetric key")
+	  .withRequest({
+	    method: "GET",
+	    path: "/users/joe@imagey.cloud/public-keys/0",
+	    headers: {
+	      Accept: "application/json",
+	    },
+	  })
+	  .willRespondWith({
+	    status: 404,
+	  });
+  provider
+    .given("default")
+    .uponReceiving("a request to register joe")
+    .withRequest({
+      method: "POST",
+      path: "/users",
       headers: {
         "Content-Type": "application/json",
       },
       body: {
-        crv: "P-256",
-        ext: true,
-        key_ops: [],
-        kty: "EC",
-        x: MatchersV3.string("I_VS7DvICMehgUF2rA4llF0mjZOSs6vgO_A5PLobUmc"),
-        y: MatchersV3.string("Z4astOZHg9NfhoAldwMZhC34UQsRU7CflGn8JpNGtAg"),
+		email: "joe@imagey.cloud",
       },
     })
     .willRespondWith({

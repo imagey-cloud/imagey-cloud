@@ -38,7 +38,7 @@ export async function setupMockServer(page: Page, mockServer: V3MockServer) {
   const mockServerUrl = new URL(mockServer.url);
   await page.route("/users/**", async (route, request) => {
     const requestUrl = new URL(request.url());
-    requestUrl.hostname = mockServerUrl.hostname;
+    //requestUrl.hostname = mockServerUrl.hostname;
     requestUrl.port = mockServerUrl.port;
     const response = await route.fetch({
       headers: request.headers(),
